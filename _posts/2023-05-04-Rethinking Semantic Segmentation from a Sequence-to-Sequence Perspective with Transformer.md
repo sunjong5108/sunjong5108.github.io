@@ -1,0 +1,156 @@
+# Rethinking Semantic Segmentation from a Sequence-to-Sequence Perspective with Transformer
+
+### CVPR 2021
+
+#### Abstract
+
+- Semantic Segmentation
+  - Encoder-Decoder 구조를 가진 Fully Convolutional Network (FCN)를 많이 사용 (이전까지)
+    - Encoder는 점차적으로 spatial resolution이 감소하면서 abstract/semantic visual concept를 더 큰 receptive field로 학습하게 해줌
+    - Context modeling → Segmentation에서 매우 중요
+      → Dilated/atrous convolution 또는 attention 모듈을 추가함으로써 receptive field를 증가시키려 노력
+      → 근데 FCN기반의 encoder-decoder 구조는 변하지 않음
+- 저자들 → Semantic segmentation을 sequence-to-sequence 예측 작업으로 처리
+  - image → sequence of patches, 이 때, Pure transformer ($Conv$ X, resolution reduction X)을 사용
+  - Transformer의 모든 layer에 global context가 모델링된 이 encoder는 간단한 decoder와 결합 → 강력한 segmentation model (**SETR**)
+
+---
+
+#### Introduction
+
+- standard FCN segmentation model
+
+  - encoder-decoder 구조
+    - encoder - feature representation learning
+      → image understanding을 위해 설계, CNN layer 쌓아서 사용
+      - computational cost 때문에 feature map 해상도를 점차적으로 줄임 → receptive field를 점진적으로 증가시키면서 abstract/semantic visual concepts를 학습
+    - decoder - encoder에 의해 나온 feature representation에 대한 pixel-level classification
+  - 이런 구조는 2가지 요인때문에 인기가 많았음
+    1) **translation equivariance**
+       - unseen image data에 대한 model generalization 능력을 뒷받침
+    2) **locality**
+       - 공간 전반에 걸쳐 parameter를 공유함으로써 model complexity 제어
+  - <span style='color:red'>**하지만!**</span> unconstrained scene image에서 semantic segmentation에 중요한 long-range dependency information을 학습하는 것이 제한된 receptive field로 인해 어려워짐 (<span style='color:red'>전반적인 contextual을 포착하기 어려움</span>)
+
+- long-range dependencies information 얻기 위해, large kernel이나 dilated conv, self-attention module를 추가함, 하지만  기존의 encoder-decoder 구조는 변화 X
+  → <span style='color: red'>왜 semantic segmentation task에서 long range dependency information이 중요할까?</span>
+
+  - semantic segmentation은 scene의 전반적인 상황에 맞는 object를 segmentation하는 것이 매우 중요하다. 예를 들어 배경이 강이고, 여기에 배와 사람 등 다양한 객체들이 존재한다고 했을때, long-range dependency information에 대해 학습하지 못하면 전혀 다른 객체를 예측할수도 있기 때문이다. [PSPNet]
+
+- 저자들은 Spatial resolution이 점차적으로 줄어드는 기존 encoder를 pure transformer로 대체하는 방법을 제안 (**SETR**)
+
+  - **SETR**의 encoder는 input image를 학습된 patch embedding에 의해 표현된 image patch들의 sequence를 다루고, sequence를 discriminative feature representation learning을 위한 global self-attention modeling으로 변환한다.
+
+- SETR (전반적인 흐름)
+
+  1) image → 고정된 크기의 patch들 (분해) → Sequence of patches
+  2) patches → flatten → linear embedding layer → sequence of feature embedding vector
+  3) feature embedding vector → transformer encoder → learned features
+  4) learned features → decoder → original image resolution으로 복원
+
+  <span style='color:red'>Spatial resolution의 downsampling X, encoder transformer의 모든 layer에서 global context modeling → Semantic segmentation task에서 완전히 새로운 관점을 제공 </span>
+
+  - ViT
+    - 기존 CNN구조에서 spatial resolution을 줄임으로써 local context에서 global context로 점차적으로 학습시키는 과정이 필요없다는 증거
+
+- contributions 요약
+
+  1) 기존 encoder-decoder FCN model 설계의 대안으로 image semantic segmentation task를 sequence-to-sequence learning 관점으로 해결하는 방법 제안
+  2) image를 sequential화 시키기 위해 transformer encoder 사용
+  3) self-attention feature presentation 조사하기 위해 다양한 복잡도의 3개의 decoder design 도입
+
+---
+
+#### Method
+
+##### FCN-based semantic segmentation
+
+- 기존 semantic segmentation task 해결 위한 encoder-decoder FCN model
+
+  - encoder에서 computational cost 고려해서 spatial resolution ↓, receptive field ↑
+    <span style='color:red'>왜? global context 포착하려면 큰 receptive field가 필요</span>
+
+- 한계점
+
+  - 특정 depth에 도달하면 더 많은 layer를 추가하는 이점이 급격히 감소
+  - context modeling 시 limited receptive fields → 대표적인 한계점
+
+- long-range contextual information 학습 위해 attention 모듈을 추가하기도 함
+  → <span style='color:red'>하지만 복잡도 때문에 상위 layer에서 input size가 작야하한다는 한계점이 존재</span>
+
+  → 위의 한계점은 sub-optimal representation learning을 이끄는 lower-level feature tensor에서의 dependency learning이 부족하다는 것을 의미
+
+  ###### <span style='color:red'> **그래서 SETR을 제안**</span>
+
+##### Segmentation transformers (SETR)
+
+- image → sequence → feature
+  <span style='color:red'>기존 ViT 설명</span>
+
+##### Decoder design
+
+- SETR의 encoder feature representations Z의 효과를 평가하기 위해, 3가지의 decoder designs 도입 (semantic segmentation)
+
+- encoder의 features Z 
+  $$
+  \frac{HW}{256} \times C → \frac{H}{16} \times \frac{W}{16} \times C
+  $$
+   로 reshape 해준다. <span style='color:red'>왜? segmentation을 위해</span>
+
+1. Naive upsampling (Naive)
+
+   - transformer feature
+     $$
+     Z^{Le} → Category\ dimension
+     $$
+     으로 projection
+
+   - 위 과정을 위해 제안한 decoder 구조
+     $$
+     1 \times 1\ Conv + Sync\ batch\ norm\ (w/ReLU) + 1 \times 1\ Conv → Bilinear\ upsampling
+     $$
+
+2. Progressive Upsampling (PUP)
+
+   ![image-20230503231855675](C:\Users\sunjo\AppData\Roaming\Typora\typora-user-images\image-20230503231855675.png)
+
+   - Figure 1의 (b) PUP decoder head 구조
+
+   - noisy prediction이 생길 수 있는 one-step upsampling 대신에 progressive upsampling strategy 고려
+     $$
+     1 \times 1\ Conv + Bilinear\ Upsampling (2 \times)
+     $$
+     이때, adversarial effect 최대한 완화하기 위해 upsampling은 2배까지로 제한
+
+     - 전체 해상도에 도달하기 위해 4번 반복 
+       $$
+       \dfrac {H}{16}\times \dfrac {W}{16}\ (Z^{Le}) → full\ resolution
+       $$
+       
+
+3. Multi-Level feature Aggregation (MLA)
+   ![image-20230503231940058](C:\Users\sunjo\AppData\Roaming\Typora\typora-user-images\image-20230503231940058.png)
+
+   - Figure 1의 (c) MLA decoder head 구조
+   - feature pyramid network와 유사한 multi-level aggregation 방식으로 설계
+     - 하지만 SETR layer의 feature representation $Z$가 동일한 해상도 유지 (기존 CNN 모델들과 **차이점**)
+   - $\dfrac {Le}{M}$ 으로 layer 전체에 균일하게 분포된 $M$개의 layer에서 decoder로 전달되는 feature representation $\{Z^m\}\ (m \in \dfrac {Le}{M}, \dfrac {2Le}{M}, ..., \dfrac {MLe}{M})$을 입력받음
+   - 선택한 특정 layer 하나에 대한 $M$ stream ($Z^m$)이 deploy
+   - 각 stream
+     - encoder의 feature $Z^l\ (\dfrac {HW}{256} \times C)$ → 3D feature map $(\dfrac {H}{16} \times \dfrac {W}{16} \times C)$
+     - 3 layer ($1 \times 1,\ 3 \times 3,\ 3 \times 3$) network 적용
+       여기서 첫 번째, 세 번째 layer는 각각 feature channel 절반으로 줄임
+     - bilinear 연산을 통해 해상도 4배 upscale
+   - 서로 다른 stream 간 상호작용을 향상시키기 위해 첫 번째 layer 이후 element-wise concatenation을 통한 top-down aggregation design 도입 → $3 \times 3\ Conv$추가 적용
+   - 세 번째 layer 이후, channel wise concatenation 통해 모든 stream에서 융합된 feature 얻은 다음 전체 해상도로 4배 upsampling
+
+##### **추가!** Auxiliary loss
+
+- segmentation model training에 도움
+- 각 auxiliary loss head는 2-layer network
+- SETR-Naive ($Z^{10},\ Z^{15},\ Z^{20}$)
+  SETR-PUP ($Z^{10},\ Z^{15},\ Z^{20},\ Z^{24}$)
+  SETR-MLA ($Z^{6},\ Z^{12},\ Z^{18},\ Z^{24}$)
+
+
+
