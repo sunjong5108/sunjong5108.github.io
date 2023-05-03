@@ -112,7 +112,7 @@
 
 2. Progressive Upsampling (PUP)
 
-   ![image-20230503231855675](C:\Users\sunjo\AppData\Roaming\Typora\typora-user-images\image-20230503231855675.png)
+   ![image-20230503231855675](https://user-images.githubusercontent.com/81843626/235959477-b82db49d-ab01-43ba-acf8-3fdda0add544.png)
 
    - Figure 1의 (b) PUP decoder head 구조
 
@@ -129,7 +129,7 @@
        
 
 3. Multi-Level feature Aggregation (MLA)
-   ![image-20230503231940058](C:\Users\sunjo\AppData\Roaming\Typora\typora-user-images\image-20230503231940058.png)
+   ![image-20230503231940058](https://user-images.githubusercontent.com/81843626/235959477-b82db49d-ab01-43ba-acf8-3fdda0add544.png)
 
    - Figure 1의 (c) MLA decoder head 구조
    - feature pyramid network와 유사한 multi-level aggregation 방식으로 설계
