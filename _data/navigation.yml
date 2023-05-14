@@ -26,7 +26,7 @@ header:
     url: /
   - titles:
       # @start locale config
-      en      : &EN       About
+      en      : &EN       ABOUT
       en-GB   : *EN
       en-US   : *EN
       en-CA   : *EN
@@ -38,7 +38,7 @@ header:
       zh-Hant : &ZH_HANT  關於
       zh-TW   : *ZH_HANT
       zh-HK   : *ZH_HANT
-      ko      : &EN       About
+      ko      : &EN       ABOUT
       ko-KR   : *KO
       fr      : &FR       À propos
       fr-BE   : *FR
