@@ -28,3 +28,8 @@ key: page-about
 ​---
 ---
 
+email: sunjong5108@gmail.com
+
+github: https://github.com/sunjong5108
+
+blog: https://sunjong5108.github.io/
