@@ -1,4 +1,5 @@
 ---
+​---
 layout: article
 titles:
   # @start locale config
@@ -24,6 +25,7 @@ titles:
   fr-LU   : *FR
   # @end locale config
 key: page-about
+​---
 ---
 
 # 강선종 포트폴리오
