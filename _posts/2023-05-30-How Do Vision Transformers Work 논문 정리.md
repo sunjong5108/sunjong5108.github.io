@@ -53,7 +53,7 @@ tags: [AI, Computer Vision, Paper, Self-attention, Multi-head self-attention, Vi
   1. MSA의 특성이 Neural Networks을 최적화가 더 잘되기위해 필요할까? <br />MSA의 long-range dependencies가 Neural Networks 학습에 도움이 될까?
   2. MSA가 Conv처럼 동작할까? <br />아니라면 MSA와 Conv는 얼마나 다를까?
   3. 어떻게 MSA와 Conv를 조합할 수 있을까?<br />MSA와 Conv의 장점을 활용할 수 있을까?
-- $z_j=\sum_i{Softmax(\frac{QK}{\sqrt{d}})_i}V_{i,j}$,        (1)
+- $$z_j=\sum_i{Softmax(\frac{QK}{\sqrt{d}})_i}V_{i,j}$$,        (1)
   - Self-attention은 normalized importance와 함께 (spatial) token들을 집계한다.
   - 식 (1)에서도 알 수 있듯이 MSA는 positive importance-weights로 feature map값을 평균화하기 때문에 MSA를 feature map의 학습 가능한 spatial smoothing이라 표현하여 작동원리를 설명할 수 있다.
     - $2\times2$ blur와 같은 학습할 수 없는 spatial smoothing → CNN이 feature를 더 잘 볼 수 있도록 도와줌 (Park & Kim, 2022)
@@ -63,10 +63,10 @@ tags: [AI, Computer Vision, Paper, Self-attention, Multi-head self-attention, Vi
   - Subsampling layer 전 spatial smoothing은 CNN이 더 잘 볼 수 있게 해준다!
     - Park & Kim (2022) "Blurs behave like ensembles: Spatial smoothings to improve accuracy, uncertainty, and robustness."
       - 해당 논문에서 feature map points의 spatial ensemble때문에 성능 향상이 됬다는 것을 보여줌
-      - "Bayesian ensemble average or predictions for proximate data point"을 사용한다.<br/>이는 feature map의 distribution과 같은 data uncertainty뿐만 아니라 Neural Network weights의 posterior distribution과 같은 model uncertainty를 사용한다. <br/>
-        $p(z_j|x_j, \mathcal{D}) \simeq \sum_i{\pi(x_i|x_j)p(z_j|x_i, w_i)}$,     (2) <br />
+      - "Bayesian ensemble average or predictions for proximate data point"을 사용한다.<br/>이는 feature map의 distribution과 같은 data uncertainty뿐만 아니라 Neural Network weights의 posterior distribution과 같은 model uncertainty를 사용한다.   <br/>
+        $$p(z_j|x_j, \mathcal{D}) \simeq \sum_i{\pi(x_i|x_j)p(z_j|x_i, w_i)}$$,     (2)    <br />
         (<span style='color:red'>정확히 알아볼 필요있음</span>)
-        - $\pi(x_i|x_j)$ → 또다른 feature map point $x_j$에 대한 feature map point $x_i$의 normalized importance weight.<br/>즉, $\sum_i{\pi(x_i|x_j)}=1$<br/>Importance → $x_i$와 $x_j$ 사이의 similarity<br/>$p(z_j|x_i, w_i)$ → NN prediction, $p(z_j|x_j, \mathcal{D})$ → output predictive distribution<br/>$w_i$ → training dataset $\mathcal{D}$에 대한 posterior $p(w|\mathcal{D})$에서부터의 NN weight sample
+        - $$\pi(x_i|x_j)$$ → 또다른 feature map point $x_j$에 대한 feature map point $x_i$의 normalized importance weight.<br/>즉, $\sum_i{\pi(x_i|x_j)}=1$ <br/>Importance → $x_i$와 $x_j$ 사이의 similarity <br/>$p(z_j|x_i, w_i)$ → NN prediction, $p(z_j|x_j, \mathcal{D})$ → output predictive distribution <br/>$w_i$ → training dataset $\mathcal{D}$에 대한 posterior $p(w|\mathcal{D})$에서부터의 NN weight sample
     - 식 (2)는 data point간의 유사성을 기반으로 prediction을 다른 predicrion으로 공간적으로 보완해줌
       - ex) $2\times2$ box blur는 각각 중요도가 1/4인 4개의 인접한 feature map point를 공간적으로 조합!
   - 저자들
